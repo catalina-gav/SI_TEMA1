@@ -1,0 +1,49 @@
+Securitatea informatiei
+Tema 1
+Documentatie
+Gavrilovici Catalina
+8 Noiembrie 2020
+
+
+Modalitate de executie a programului:
+Acesta este facut in Java, am folosit IntelliJ.Sunt 3 proiecte.Mai intai trebuie executat(run in clasa care are functia main) programul KM_Manager, dupa clientii A si B.
+Modalitate comunicare:
+Km cere modul de operare de la ambii clienti pe care acestia il vor scrie la linia de comanda.Dupa KM primeste aceste moduri, verifica daca ele coincid:
+-daca cele 2 coincid: trimite criptat prin AES/ECB cu cheia k3 un json care are modul de operare, cheia corespunzatoare
+si eventual vectorul de initializare.
+-daca nu coincid : alege un mod aleator si-l trimite la fel sub format json
+-A si B decripteaza jsonul primit de la KM si trimit mesaj de confirmare lui KM criptat cu modul ales
+-Cand KM primeste mesajul de confirmare pe care il decripteaza de la ambii, le trimite confirmarea ca pot trece la comunicarea directa
+comunicarea directa intre clientul A si B:
+-A joaca rolul de server pentru B
+-B se conecteaza la A 
+-A citeste textul dintr-un fisier (trebuie schimbat pathul pentru acesta cand executati ), il cripteaza in modul stabilita
+anterior si il trimite lui B (nu am impartirea in blocuri) iar apoi ii trimite mesaj de confirmare lui KM ca a trimis lui B
+-Dupa ce B primeste textul el il decripteaza si trimite si el mesaj de confirmare lui KM
+-cand KM a primit confirmarea si de la A si de la B => le spune ca s-a terminat comunicarea : se incheie executia lui A si B si ulterior a lui KM.
+
+
+Librarii/module necesare: proiectele sunt de tip maven asa ca atoate librariile suplimentare se afla ca dependency in pom.xml ( se poate face un maven -> reimport pentru a 
+fi sigur ca s-a realizat importul corect)
+
+ 
+Implementarea functiilor criptografice
+
+Criptare ECB:
+Practic e necesara impartirea mesajului in blocuri de 16 bytes si aplicarea AES pe fiecare dintre acesta cu cheia data.
+Cum am realizat acest lucru:
+Mai intai de toate am facut padding pe mesaj in felul urmator: cat timp lungimea mesajului nu e multiplu de 16, adaug whitespace la mesaj.
+-pe mesajul cu padding pe ultimul bloc: cu un while imi creez pentru fiecare 16 bytes (adica pentru un bloc) un nou vector pe care aplic AES cu ENCRYPT_MODE cu cheia data.
+Decriptare ECB:
+-aceeasi modalitate ca pentru criptare, atat ca pe fiecare bloc de 16 bytes voi aplica AES cu DECRYPT_MODE
+
+Criptare si Decriptare OFB:
+-Practic a fost necesara o singura functie pentru ca este aceeasi functionalitate in spate pentru criptarea si decriptarea in cazul OFB, atat ca la criptare 
+avem ca parametru plaintextul iar la decriptare avem ca parametru ciphertextul.
+Modalitate de rezolvare:
+-facem din nou padding pe mesaj in aceeasi maniera deoarece tot vom putea avea probleme la XOR la ultimul bloc de plaintextul
+criptare:
+-criptez vectorul de initializare primit ca parametru in mod AES cu ENCRYPT_MODE( acesta devine VI pentru urmatorul bloc) si cu un while iau cate 1 bloc de 16 bytes de plaintext si fac XOR intre vectorul criptat
+si blocul de plaintext =>obtinem criptotextul.
+la decriptare:
+-acelasi procedeu, doar ca vom face VI criptat XOR ciphertextul => obtinem plaintextul
